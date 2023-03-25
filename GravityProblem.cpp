@@ -2,8 +2,7 @@
 #include <windows.h>
 using namespace std;
 
-bool gravity = false;
-bool antigravity = false;
+int gravity = 0;
 char maze[20][71] = {
     "######################################################################",
     "#                                                                    #",
@@ -30,7 +29,7 @@ char maze[20][71] = {
 void gotoxy(int x, int y);
 void consoleCursor(bool visibility);
 void render(char array[][71], int mazeSize, int offsetX, int offsetY);
-void setGravity(bool value);
+void setGravity(int value);
 void printMaze(char array[][71], int mazeSize, int offsetX, int offsetY);
 void fillObjectsRandomly(char array[][71], int mazeSize, int objectCount);
 
@@ -43,15 +42,19 @@ int main()
     printMaze(maze, 20, 20, 5);
     while (1)
     {
-        Sleep(50);
+        Sleep(50 - abs(gravity) * 3);
         render(maze, 20, 20, 5);
         if (GetAsyncKeyState(VK_DOWN))
         {
-            setGravity(true);
+            setGravity(1);
         }
         else if (GetAsyncKeyState(VK_UP))
         {
-            setGravity(false);
+            setGravity(-10);
+        }
+        else if (GetAsyncKeyState(VK_SPACE))
+        {
+            setGravity(0);
         }
     }
 }
@@ -82,13 +85,13 @@ void printMaze(char array[][71], int mazeSize, int offsetX, int offsetY)
         cout << array[i] << endl;
     }
 }
-void setGravity(bool value)
+void setGravity(int value)
 {
     gravity = value;
 }
 void render(char array[][71], int mazeSize, int offsetX, int offsetY)
 {
-    if (gravity)
+    if (gravity > 0)
     {
         for (int i = mazeSize - 2; i > 0; i--)
         {
@@ -106,7 +109,7 @@ void render(char array[][71], int mazeSize, int offsetX, int offsetY)
             }
         }
     }
-    else
+    else if (gravity < 0)
     {
         for (int i = 1; i < mazeSize - 1; i++)
         {
