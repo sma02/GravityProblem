@@ -2,7 +2,8 @@
 #include <windows.h>
 using namespace std;
 
-int gravity = 0;
+bool gravity = false;
+bool isBlackHole = false;
 char maze[20][71] = {
     "######################################################################",
     "#                                                                    #",
@@ -29,7 +30,10 @@ char maze[20][71] = {
 void gotoxy(int x, int y);
 void consoleCursor(bool visibility);
 void render(char array[][71], int mazeSize, int offsetX, int offsetY);
-void setGravity(int value);
+void setGravity(bool value);
+void toggleBlackHole();
+void shiftArray(char array[][71], int mazeSize);
+void copyArray(char array1[], char array2[], int size);
 void printMaze(char array[][71], int mazeSize, int offsetX, int offsetY);
 void fillObjectsRandomly(char array[][71], int mazeSize, int objectCount);
 
@@ -42,19 +46,19 @@ int main()
     printMaze(maze, 20, 20, 5);
     while (1)
     {
-        Sleep(50 - abs(gravity) * 3);
+        Sleep(50);
         render(maze, 20, 20, 5);
-        if (GetAsyncKeyState(VK_DOWN))
+        if (GetAsyncKeyState(VK_UP))
+        {
+            setGravity(0);
+        }
+        else if (GetAsyncKeyState(VK_DOWN))
         {
             setGravity(1);
         }
-        else if (GetAsyncKeyState(VK_UP))
-        {
-            setGravity(-10);
-        }
         else if (GetAsyncKeyState(VK_SPACE))
         {
-            setGravity(0);
+            toggleBlackHole();
         }
     }
 }
@@ -85,48 +89,60 @@ void printMaze(char array[][71], int mazeSize, int offsetX, int offsetY)
         cout << array[i] << endl;
     }
 }
-void setGravity(int value)
+void setGravity(bool value)
 {
     gravity = value;
 }
+void toggleBlackHole()
+{
+    isBlackHole = !isBlackHole;
+}
 void render(char array[][71], int mazeSize, int offsetX, int offsetY)
 {
-    if (gravity > 0)
+    if (gravity)
     {
-        for (int i = mazeSize - 2; i > 0; i--)
+        if (isBlackHole)
         {
-            for (int j = 1; j < 69; j++)
+            shiftArray(array, mazeSize);
+            printMaze(array, mazeSize, offsetX, offsetY);
+        }
+        else
+        {
+            for (int i = mazeSize - 2; i > 0; i--)
             {
-                if (array[i][j] != ' ' && array[i + 1][j] == ' ')
+
+                for (int j = 1; j < 69; j++)
                 {
-                    array[i + 1][j] = array[i][j];
-                    array[i][j] = ' ';
-                    gotoxy(offsetX + j, offsetY + i);
-                    cout << array[i][j];
-                    gotoxy(offsetX + j, offsetY + i + 1);
-                    cout << array[i + 1][j];
+                    if (array[i][j] != ' ' && array[i + 1][j] == ' ')
+                    {
+                        array[i + 1][j] = array[i][j];
+                        array[i][j] = ' ';
+                        gotoxy(offsetX + j, offsetY + i);
+                        cout << array[i][j];
+                        gotoxy(offsetX + j, offsetY + i + 1);
+                        cout << array[i + 1][j];
+                    }
                 }
             }
         }
     }
-    else if (gravity < 0)
+}
+void copyArray(char array1[], char array2[], int size)
+{
+    for (int i = 1; i < size - 1; i++)
     {
-        for (int i = 1; i < mazeSize - 1; i++)
-        {
-            for (int j = 1; j < 69; j++)
-            {
-                if (array[i][j] != ' ' && array[i - 1][j] == ' ')
-                {
-                    array[i - 1][j] = array[i][j];
-                    array[i][j] = ' ';
-                    gotoxy(offsetX + j, offsetY + i);
-                    cout << array[i][j];
-                    gotoxy(offsetX + j, offsetY + i - 1);
-                    cout << array[i - 1][j];
-                }
-            }
-        }
+        array1[i] = array2[i];
     }
+}
+void shiftArray(char array[][71], int mazeSize)
+{
+    char firstLine[71];
+    copyArray(firstLine, array[mazeSize - 2], 71);
+    for (int i = mazeSize - 2; i > 0; i--)
+    {
+        copyArray(array[i], array[i - 1], 71);
+    }
+    copyArray(array[1], firstLine, 71);
 }
 void gotoxy(int x, int y)
 {
